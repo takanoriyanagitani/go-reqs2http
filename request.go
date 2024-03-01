@@ -2,9 +2,14 @@ package reqs2http
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 
 	rhp "github.com/takanoriyanagitani/go-reqs2http/reqs2http/v1"
+)
+
+var (
+	ErrUnexpectedHeader error = errors.New("unexpected header")
 )
 
 type RequestConverter interface {
@@ -23,11 +28,33 @@ func RequestConvNew(methodDefault rhp.Method) RequestConverter {
 		var ms string = method.String()
 		var body []byte = p.GetBody()
 		var rdr *bytes.Reader = bytes.NewReader(body)
-		return http.NewRequest(
+		req, e := http.NewRequest(
 			ms,
 			p.GetUrl(),
 			rdr,
 		)
+		if nil != e {
+			return nil, e
+		}
+
+		req.Header.Set("Content-Type", "application/octet-stream") // default type
+
+		var hdr *rhp.Header = p.GetHeader()
+		var items []*rhp.HeaderItem = hdr.GetItems()
+		for _, item := range items {
+			switch v := item.GetItem().(type) {
+			case *rhp.HeaderItem_Custom:
+				req.Header.Add(
+					v.Custom.GetKey(),
+					v.Custom.GetVal(),
+				)
+			case *rhp.HeaderItem_ContentType:
+				req.Header.Set("Content-Type", v.ContentType)
+			default:
+				return nil, ErrUnexpectedHeader
+			}
+		}
+		return req, e
 	})
 }
 
