@@ -13,4 +13,4 @@ find \
 		protoc \
 		--proto_path=reqs2http-proto \
 		--go_out=. \
-		--go_opt=paths=source_relative \
+		--go_opt=paths=source_relative
