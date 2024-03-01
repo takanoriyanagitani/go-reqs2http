@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package reqs2http.v1;
+
+option go_package = "github.com/takanoriyanagitani/go-reqs2http/proto/v1";
+
+message CustomHeader {
+  string key = 1;
+  string val = 2;
+}
+
+message HeaderItem {
+  oneof item {
+    CustomHeader custom = 1;
+    string content_type = 2;
+  }
+}
+
+message Header {
+  repeated HeaderItem items = 1;
+}

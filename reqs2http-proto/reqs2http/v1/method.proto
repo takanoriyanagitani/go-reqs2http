@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package reqs2http.v1;
+
+option go_package = "github.com/takanoriyanagitani/go-reqs2http/proto/v1";
+
+enum Method {
+  METHOD_UNSPECIFIED = 0;
+  METHOD_GET = 1;
+  METHOD_HEAD = 2;
+  METHOD_POST = 3;
+  METHOD_PUT = 4;
+  METHOD_DELETE = 5;
+  METHOD_CONNECT = 6;
+  METHOD_OPTIONS = 7;
+  METHOD_TRACE = 8;
+  METHOD_PATCH = 9;
+}

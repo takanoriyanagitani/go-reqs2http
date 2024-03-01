@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package reqs2http.v1;
+
+import "reqs2http/v1/header.proto";
+import "reqs2http/v1/method.proto";
+
+option go_package = "github.com/takanoriyanagitani/go-reqs2http/proto/v1";
+
+message Request {
+  Method method = 1;
+  string url = 2;
+  Header header = 3;
+  bytes body = 4;
+}
