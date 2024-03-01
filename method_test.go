@@ -8,6 +8,14 @@ import (
 	rhp "github.com/takanoriyanagitani/go-reqs2http/reqs2http/v1"
 )
 
+func must[T any](t T, e error) T {
+	if nil == e {
+		return t
+	}
+
+	panic(e)
+}
+
 func assertEqualNew[T any](comp func(a, b T) (same bool)) func(a, b T) func(*testing.T) {
 	return func(a, b T) func(*testing.T) {
 		return func(t *testing.T) {
