@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	RequestError error = errors.New("invalid request")
+	ErrInvalidRequest error = errors.New("invalid request")
 )
 
 type Sender interface {
@@ -44,7 +44,7 @@ func RawSenderNew(sender Sender) func(RequestConverter) RawSender {
 		return RawSendFn(func(ctx context.Context, req *rhp.Request) (*http.Response, error) {
 			q, e := conv.Convert(req)
 			if nil != e {
-				return nil, errors.Join(RequestError, e)
+				return nil, errors.Join(ErrInvalidRequest, e)
 			}
 			return sender.Send(ctx, q)
 		})
