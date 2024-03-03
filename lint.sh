@@ -5,12 +5,7 @@ verbose=${ENV_VERBOSE}
 gci() {
 	golangci-lint \
 		run \
-		"${verbose}"
-}
-
-scheck() {
-	staticcheck
+		${verbose}
 }
 
 gci
-scheck

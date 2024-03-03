@@ -1,0 +1,24 @@
+[linters]
+enable = [
+	"errcheck",
+	"gosimple",
+	"govet",
+	"ineffassign",
+	"staticcheck",
+	"unused",
+
+	"asciicheck",
+	"bidichk",
+	"bodyclose",
+	"containedctx",
+	"contextcheck",
+	"cyclop",
+	"decorder",
+	"dogsled",
+	"dupl",
+	"dupword",
+	"durationcheck",
+	# "errchkjson",
+	"errname",
+	"errorlint",
+]
