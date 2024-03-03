@@ -107,6 +107,24 @@ func TestReqs(t *testing.T) {
 				var pairs []src.RequestResult = rscf.GetAll(ctx)
 				t.Run("double items", assertEqual(len(pairs), 2))
 			})
+
+			t.Run("cancel", func(t *testing.T) {
+				t.Parallel()
+
+				var rsf src.RequestSrcFn = src.RequestSrcFnFromSlice(
+					[]*rhp.Request{
+						{},
+						{},
+					},
+				)
+				var rsc src.RequestSourceCh = rsf.ToChan(0)
+				var rscf src.ReqSrcChanFn = rsc.GetRequests
+				var ctx context.Context = context.Background()
+				ctx, can := context.WithCancel(ctx)
+				can()
+				var pairs []src.RequestResult = rscf.GetAll(ctx)
+				t.Run("no items", assertEqual(len(pairs), 0))
+			})
 		})
 	})
 

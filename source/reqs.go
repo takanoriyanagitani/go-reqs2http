@@ -99,6 +99,13 @@ func RequestSrcFnFromSlice(s []*rhp.Request) RequestSrcFn {
 	var ix int = 0
 	var sz int = len(s)
 	return RequestSrcFn(func(ctx context.Context) (*rhp.Request, error) {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			break
+		}
+
 		if ix < sz {
 			var req *rhp.Request = s[ix]
 			ix++
