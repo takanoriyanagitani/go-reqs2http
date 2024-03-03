@@ -26,4 +26,16 @@ enable = [
 	# "errchkjson",
 	"errname",
 	"errorlint",
+	"revive",
 ]
+
+#[linters-settings.revive]
+#enable-all-rules = true
+
+[[linters-settings.revive.rules]]
+name = "var-declaration"
+disabled = true
+
+[[linters-settings.revive.rules]]
+name = "line-length-limit"
+disabled = false
