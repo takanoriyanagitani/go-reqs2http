@@ -101,7 +101,7 @@ func RequestSrcFnFromSlice(s []*rhp.Request) RequestSrcFn {
 	return RequestSrcFn(func(ctx context.Context) (*rhp.Request, error) {
 		if ix < sz {
 			var req *rhp.Request = s[ix]
-			ix += 1
+			ix++
 			return req, nil
 		}
 
