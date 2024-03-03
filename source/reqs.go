@@ -13,18 +13,22 @@ var (
 	ErrNoMoreData error = errors.New("no more data")
 )
 
+type RequestResult pair.Pair[error, *rhp.Request]
+
+func RequestOk(r *rhp.Request) RequestResult { return RequestResult(pair.Right[error](r)) }
+
 type RequestSourceCh interface {
-	GetRequests(context.Context) <-chan pair.Pair[error, *rhp.Request]
+	GetRequests(context.Context) <-chan RequestResult
 }
 
-type ReqSrcChanFn func(context.Context) <-chan pair.Pair[error, *rhp.Request]
+type ReqSrcChanFn func(context.Context) <-chan RequestResult
 
-func (f ReqSrcChanFn) GetRequests(ctx context.Context) <-chan pair.Pair[error, *rhp.Request] {
+func (f ReqSrcChanFn) GetRequests(ctx context.Context) <-chan RequestResult {
 	return f(ctx)
 }
 func (f ReqSrcChanFn) AsIf() RequestSourceCh { return f }
-func (f ReqSrcChanFn) GetAll(ctx context.Context) (pairs []pair.Pair[error, *rhp.Request]) {
-	var pch <-chan pair.Pair[error, *rhp.Request] = f(ctx)
+func (f ReqSrcChanFn) GetAll(ctx context.Context) (pairs []RequestResult) {
+	var pch <-chan RequestResult = f(ctx)
 
 	for pair := range pch {
 		pairs = append(pairs, pair)
@@ -33,8 +37,8 @@ func (f ReqSrcChanFn) GetAll(ctx context.Context) (pairs []pair.Pair[error, *rhp
 }
 
 func ReqSrcChanFnFromSlice(s []*rhp.Request) ReqSrcChanFn {
-	return func(ctx context.Context) <-chan pair.Pair[error, *rhp.Request] {
-		ch := make(chan pair.Pair[error, *rhp.Request])
+	return func(ctx context.Context) <-chan RequestResult {
+		ch := make(chan RequestResult)
 		go func() {
 			defer close(ch)
 
@@ -43,7 +47,7 @@ func ReqSrcChanFnFromSlice(s []*rhp.Request) ReqSrcChanFn {
 				case <-ctx.Done():
 					return
 				default:
-					ch <- pair.Right[error](req)
+					ch <- RequestOk(req)
 				}
 			}
 		}()
@@ -63,8 +67,8 @@ func (f RequestSrcFn) Next(ctx context.Context) (*rhp.Request, error) { return f
 func (f RequestSrcFn) AsIf() RequestSource                            { return f }
 
 func (f RequestSrcFn) ToChan(bufSz int) RequestSourceCh {
-	return ReqSrcChanFn(func(ctx context.Context) <-chan pair.Pair[error, *rhp.Request] {
-		ret := make(chan pair.Pair[error, *rhp.Request], bufSz)
+	return ReqSrcChanFn(func(ctx context.Context) <-chan RequestResult {
+		ret := make(chan RequestResult, bufSz)
 		var src RequestSource = f.AsIf()
 		go func() {
 			defer close(ret)
@@ -79,7 +83,7 @@ func (f RequestSrcFn) ToChan(bufSz int) RequestSourceCh {
 				if errors.Is(e, ErrNoMoreData) {
 					return
 				}
-				ret <- pair.Pair[error, *rhp.Request]{Left: e, Right: req}
+				ret <- RequestResult{Left: e, Right: req}
 			}
 		}()
 		return ret

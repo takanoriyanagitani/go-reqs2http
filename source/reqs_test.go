@@ -6,8 +6,6 @@ import (
 
 	"context"
 
-	pair "github.com/takanoriyanagitani/go-reqs2http/pair"
-
 	src "github.com/takanoriyanagitani/go-reqs2http/source"
 
 	rhp "github.com/takanoriyanagitani/go-reqs2http/reqs2http/v1"
@@ -75,7 +73,7 @@ func TestReqs(t *testing.T) {
 				var rsc src.RequestSourceCh = rsf.ToChan(0)
 				var rscf src.ReqSrcChanFn = rsc.GetRequests
 				var ctx context.Context = context.Background()
-				var pairs []pair.Pair[error, *rhp.Request] = rscf.GetAll(ctx)
+				var pairs []src.RequestResult = rscf.GetAll(ctx)
 				t.Run("empty slice", assertEmpty(pairs))
 			})
 
@@ -88,7 +86,7 @@ func TestReqs(t *testing.T) {
 				var rsc src.RequestSourceCh = rsf.ToChan(0)
 				var rscf src.ReqSrcChanFn = rsc.GetRequests
 				var ctx context.Context = context.Background()
-				var pairs []pair.Pair[error, *rhp.Request] = rscf.GetAll(ctx)
+				var pairs []src.RequestResult = rscf.GetAll(ctx)
 				t.Run("single item", assertEqual(len(pairs), 1))
 			})
 
@@ -102,7 +100,7 @@ func TestReqs(t *testing.T) {
 				var rsc src.RequestSourceCh = rsf.ToChan(0)
 				var rscf src.ReqSrcChanFn = rsc.GetRequests
 				var ctx context.Context = context.Background()
-				var pairs []pair.Pair[error, *rhp.Request] = rscf.GetAll(ctx)
+				var pairs []src.RequestResult = rscf.GetAll(ctx)
 				t.Run("double items", assertEqual(len(pairs), 2))
 			})
 		})
@@ -121,7 +119,7 @@ func TestReqs(t *testing.T) {
 				var rsc src.RequestSourceCh = rsf.ToChan(0)
 				var rscf src.ReqSrcChanFn = rsc.GetRequests
 				var ctx context.Context = context.Background()
-				var pairs []pair.Pair[error, *rhp.Request] = rscf.GetAll(ctx)
+				var pairs []src.RequestResult = rscf.GetAll(ctx)
 				t.Run("empty slice", assertEmpty(pairs))
 			})
 
@@ -133,7 +131,7 @@ func TestReqs(t *testing.T) {
 
 					var rscf src.ReqSrcChanFn = src.ReqSrcChanFnFromSlice(nil)
 					var ctx context.Context = context.Background()
-					var pairs []pair.Pair[error, *rhp.Request] = rscf.GetAll(ctx)
+					var pairs []src.RequestResult = rscf.GetAll(ctx)
 					t.Run("empty", assertEmpty(pairs))
 				})
 
@@ -144,7 +142,7 @@ func TestReqs(t *testing.T) {
 						{},
 					})
 					var ctx context.Context = context.Background()
-					var pairs []pair.Pair[error, *rhp.Request] = rscf.GetAll(ctx)
+					var pairs []src.RequestResult = rscf.GetAll(ctx)
 					t.Run("single item", assertEqual(len(pairs), 1))
 				})
 			})

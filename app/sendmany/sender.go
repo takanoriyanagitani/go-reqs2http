@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	pair "github.com/takanoriyanagitani/go-reqs2http/pair"
-
 	buf "github.com/takanoriyanagitani/go-reqs2http/buffered"
 	rhp "github.com/takanoriyanagitani/go-reqs2http/reqs2http/v1"
 	src "github.com/takanoriyanagitani/go-reqs2http/source"
@@ -20,7 +18,7 @@ type ManySender struct {
 func (m ManySender) SendAll(ctx context.Context, bufSz int) error {
 	var sf src.RequestSrcFn = src.RequestSrcFn(m.source.Next)
 	var sc src.RequestSourceCh = sf.ToChan(bufSz)
-	var reqs <-chan pair.Pair[error, *rhp.Request] = sc.GetRequests(ctx)
+	var reqs <-chan src.RequestResult = sc.GetRequests(ctx)
 	for {
 		select {
 		case <-ctx.Done():
