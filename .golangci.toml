@@ -73,6 +73,46 @@ disabled = false
 name = "increment-decrement"
 disabled = false
 
+[[linters-settings.revive.rules]]
+name = "indent-error-flow"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "package-comments"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "range"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "receiver-naming"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "redefines-builtin-id"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "superfluous-else"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "time-naming"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "unexported-return"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "unreachable-code"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "unused-parameter"
+disabled = false
+
 #[linters-settings.revive]
 #enable-all-rules = true
 
