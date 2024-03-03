@@ -1,6 +1,6 @@
 package buffered
 
-type BufferedSender interface {
+type Sender interface {
 	UsageSource
 	ChangeSource
 	Buffer

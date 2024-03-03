@@ -11,7 +11,7 @@ import (
 
 type ManySender struct {
 	source src.RequestSource
-	sender buf.BufferedSender
+	sender buf.Sender
 	waiter buf.WaitHint
 }
 
