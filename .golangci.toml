@@ -29,6 +29,46 @@ enable = [
 	"revive",
 ]
 
+[[linters-settings.revive.rules]]
+name = "blank-imports"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "context-as-argument"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "context-keys-type"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "dot-imports"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "empty-block"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "error-naming"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "error-return"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "error-strings"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "errorf"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "exported"
+disabled = false
+
 #[linters-settings.revive]
 #enable-all-rules = true
 
