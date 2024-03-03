@@ -12,14 +12,19 @@ var (
 	ErrUnexpectedHeader error = errors.New("unexpected header")
 )
 
+const ContentTypeDefault string = "application/octet-stream"
+
 type RequestConverter interface {
 	Convert(*rhp.Request) (*http.Request, error)
 }
 
 type RequestConvFn func(*rhp.Request) (*http.Request, error)
 
-func (f RequestConvFn) Convert(p *rhp.Request) (*http.Request, error) { return f(p) }
-func (f RequestConvFn) AsIf() RequestConverter                        { return f }
+func (f RequestConvFn) Convert(p *rhp.Request) (*http.Request, error) {
+	return f(p)
+}
+
+func (f RequestConvFn) AsIf() RequestConverter { return f }
 
 func RequestConvNew(methodDefault rhp.Method) RequestConverter {
 	return RequestConvFn(func(p *rhp.Request) (*http.Request, error) {
@@ -37,7 +42,7 @@ func RequestConvNew(methodDefault rhp.Method) RequestConverter {
 			return nil, e
 		}
 
-		req.Header.Set("Content-Type", "application/octet-stream") // default type
+		req.Header.Set("Content-Type", ContentTypeDefault) // default type
 
 		var hdr *rhp.Header = p.GetHeader()
 		var items []*rhp.HeaderItem = hdr.GetItems()

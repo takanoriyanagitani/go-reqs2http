@@ -18,11 +18,18 @@ type Sender interface {
 
 type SendFn func(context.Context, *http.Request) (*http.Response, error)
 
-func (f SendFn) Send(c context.Context, q *http.Request) (*http.Response, error) { return f(c, q) }
-func (f SendFn) AsIf() Sender                                                    { return f }
+func (f SendFn) Send(
+	c context.Context, q *http.Request,
+) (*http.Response, error) {
+	return f(c, q)
+}
+
+func (f SendFn) AsIf() Sender { return f }
 
 func SenderNew(client *http.Client) Sender {
-	return SendFn(func(ctx context.Context, req *http.Request) (*http.Response, error) {
+	return SendFn(func(
+		ctx context.Context, req *http.Request,
+	) (*http.Response, error) {
 		var neo *http.Request = req.WithContext(ctx)
 		return client.Do(neo)
 	})
@@ -36,12 +43,19 @@ type RawSender interface {
 
 type RawSendFn func(context.Context, *rhp.Request) (*http.Response, error)
 
-func (f RawSendFn) Send(c context.Context, q *rhp.Request) (*http.Response, error) { return f(c, q) }
-func (f RawSendFn) AsIf() RawSender                                                { return f }
+func (f RawSendFn) Send(
+	c context.Context, q *rhp.Request,
+) (*http.Response, error) {
+	return f(c, q)
+}
+
+func (f RawSendFn) AsIf() RawSender { return f }
 
 func RawSenderNew(sender Sender) func(RequestConverter) RawSender {
 	return func(conv RequestConverter) RawSender {
-		return RawSendFn(func(ctx context.Context, req *rhp.Request) (*http.Response, error) {
+		return RawSendFn(func(
+			ctx context.Context, req *rhp.Request,
+		) (*http.Response, error) {
 			q, e := conv.Convert(req)
 			if nil != e {
 				return nil, errors.Join(ErrInvalidRequest, e)

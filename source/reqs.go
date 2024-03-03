@@ -15,7 +15,9 @@ var (
 
 type RequestResult pair.Pair[error, *rhp.Request]
 
-func RequestOk(r *rhp.Request) RequestResult { return RequestResult(pair.Right[error](r)) }
+func RequestOk(r *rhp.Request) RequestResult {
+	return RequestResult(pair.Right[error](r))
+}
 
 type RequestSourceCh interface {
 	GetRequests(context.Context) <-chan RequestResult
@@ -63,8 +65,11 @@ type RequestSource interface {
 
 type RequestSrcFn func(context.Context) (*rhp.Request, error)
 
-func (f RequestSrcFn) Next(ctx context.Context) (*rhp.Request, error) { return f(ctx) }
-func (f RequestSrcFn) AsIf() RequestSource                            { return f }
+func (f RequestSrcFn) Next(ctx context.Context) (*rhp.Request, error) {
+	return f(ctx)
+}
+
+func (f RequestSrcFn) AsIf() RequestSource { return f }
 
 func (f RequestSrcFn) ToChan(bufSz int) RequestSourceCh {
 	return ReqSrcChanFn(func(ctx context.Context) <-chan RequestResult {

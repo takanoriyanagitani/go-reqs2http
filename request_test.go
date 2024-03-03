@@ -42,10 +42,11 @@ func TestRequest(t *testing.T) {
 				t.Run("example", func(t *testing.T) {
 					t.Parallel()
 
-					req := &rhp.Request{Url: "https://example.com"}
+					const testUrl string = "https://example.com"
+					req := &rhp.Request{Url: testUrl}
 					var converted *http.Request = must(conv.Convert(req))
 					var u *url.URL = converted.URL
-					t.Run("same url", assertEqual(u.String(), "https://example.com"))
+					t.Run("same url", assertEqual(u.String(), testUrl))
 				})
 			})
 
@@ -86,7 +87,8 @@ func TestRequest(t *testing.T) {
 						var converted *http.Request = must(conv.Convert(req))
 						var hdr http.Header = converted.Header
 						var typ string = hdr.Get("Content-Type")
-						t.Run("default type", assertEqual(typ, "application/octet-stream"))
+						const otyp string = "application/octet-stream"
+						t.Run("default type", assertEqual(typ, otyp))
 					})
 
 					t.Run("json", func(t *testing.T) {
@@ -106,7 +108,8 @@ func TestRequest(t *testing.T) {
 						var converted *http.Request = must(conv.Convert(req))
 						var hdr http.Header = converted.Header
 						var typ string = hdr.Get("Content-Type")
-						t.Run("default type", assertEqual(typ, "application/json"))
+						const jtyp string = "application/json"
+						t.Run("default type", assertEqual(typ, jtyp))
 					})
 				})
 

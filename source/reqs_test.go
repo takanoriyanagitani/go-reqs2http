@@ -19,7 +19,9 @@ func must[T any](t T, e error) T {
 	panic(e)
 }
 
-func assertEqualNew[T any](comp func(a, b T) (same bool)) func(a, b T) func(*testing.T) {
+func assertEqualNew[T any](
+	comp func(a, b T) (same bool),
+) func(a, b T) func(*testing.T) {
 	return func(a, b T) func(*testing.T) {
 		return func(t *testing.T) {
 			t.Helper()
@@ -80,9 +82,9 @@ func TestReqs(t *testing.T) {
 			t.Run("single", func(t *testing.T) {
 				t.Parallel()
 
-				var rsf src.RequestSrcFn = src.RequestSrcFnFromSlice([]*rhp.Request{
-					{},
-				})
+				var rsf src.RequestSrcFn = src.RequestSrcFnFromSlice(
+					[]*rhp.Request{{}},
+				)
 				var rsc src.RequestSourceCh = rsf.ToChan(0)
 				var rscf src.ReqSrcChanFn = rsc.GetRequests
 				var ctx context.Context = context.Background()
@@ -93,10 +95,12 @@ func TestReqs(t *testing.T) {
 			t.Run("double", func(t *testing.T) {
 				t.Parallel()
 
-				var rsf src.RequestSrcFn = src.RequestSrcFnFromSlice([]*rhp.Request{
-					{},
-					{},
-				})
+				var rsf src.RequestSrcFn = src.RequestSrcFnFromSlice(
+					[]*rhp.Request{
+						{},
+						{},
+					},
+				)
 				var rsc src.RequestSourceCh = rsf.ToChan(0)
 				var rscf src.ReqSrcChanFn = rsc.GetRequests
 				var ctx context.Context = context.Background()
@@ -138,9 +142,9 @@ func TestReqs(t *testing.T) {
 				t.Run("single", func(t *testing.T) {
 					t.Parallel()
 
-					var rscf src.ReqSrcChanFn = src.ReqSrcChanFnFromSlice([]*rhp.Request{
-						{},
-					})
+					var rscf src.ReqSrcChanFn = src.ReqSrcChanFnFromSlice(
+						[]*rhp.Request{{}},
+					)
 					var ctx context.Context = context.Background()
 					var pairs []src.RequestResult = rscf.GetAll(ctx)
 					t.Run("single item", assertEqual(len(pairs), 1))
