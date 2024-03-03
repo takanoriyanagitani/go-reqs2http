@@ -39,3 +39,7 @@ disabled = true
 [[linters-settings.revive.rules]]
 name = "line-length-limit"
 disabled = false
+
+[[linters-settings.revive.rules]]
+name = "var-naming"
+disabled = false

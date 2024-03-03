@@ -42,11 +42,11 @@ func TestRequest(t *testing.T) {
 				t.Run("example", func(t *testing.T) {
 					t.Parallel()
 
-					const testUrl string = "https://example.com"
-					req := &rhp.Request{Url: testUrl}
+					const testURL string = "https://example.com"
+					req := &rhp.Request{Url: testURL}
 					var converted *http.Request = must(conv.Convert(req))
 					var u *url.URL = converted.URL
-					t.Run("same url", assertEqual(u.String(), testUrl))
+					t.Run("same url", assertEqual(u.String(), testURL))
 				})
 			})
 
