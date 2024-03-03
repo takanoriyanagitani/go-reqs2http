@@ -69,6 +69,10 @@ disabled = false
 name = "exported"
 disabled = false
 
+[[linters-settings.revive.rules]]
+name = "increment-decrement"
+disabled = false
+
 #[linters-settings.revive]
 #enable-all-rules = true
 
