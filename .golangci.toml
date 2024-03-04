@@ -151,7 +151,6 @@ disabled = false
 [[linters-settings.revive.rules]]
 name = "cognitive-complexity"
 disabled = false
-arguments = [9]
 exclude = [
 	"request_test.go",
 ]

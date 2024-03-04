@@ -26,10 +26,10 @@ func (m ManySender) getWait(ctx context.Context) (time.Duration, error) {
 	return m.waiter.Hint(usg, chg), nil
 }
 
+//revive:disable:cognitive-complexity
 func ProcessChan[T any](
 	ctx context.Context,
 	ch <-chan T,
-	noData func() error,
 	onData func(T) error,
 ) error {
 	for {
@@ -38,7 +38,7 @@ func ProcessChan[T any](
 			return ctx.Err()
 		case dat, ok := <-ch:
 			if !ok {
-				return noData()
+				return nil
 			}
 
 			e := onData(dat)
@@ -49,6 +49,8 @@ func ProcessChan[T any](
 	}
 }
 
+//revive:enable:cognitive-complexity
+
 func (m ManySender) SendAll(ctx context.Context, bufSz int) error {
 	var sf src.RequestSrcFn = src.RequestSrcFn(m.source.Next)
 	var sc src.RequestSourceCh = sf.ToChan(bufSz)
@@ -56,7 +58,6 @@ func (m ManySender) SendAll(ctx context.Context, bufSz int) error {
 	return ProcessChan(
 		ctx,
 		reqs,
-		func() error { return nil },
 		func(rslt src.RequestResult) error {
 			var err error = rslt.Left
 			if nil != err {

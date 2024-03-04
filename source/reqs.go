@@ -38,22 +38,37 @@ func (f ReqSrcChanFn) GetAll(ctx context.Context) (pairs []RequestResult) {
 	return
 }
 
+func Slice2Chan[T, U any](
+	ctx context.Context,
+	src []T,
+	mkch func() chan U,
+	conv func(T) U,
+) <-chan U {
+	var ch chan U = mkch()
+	go func() {
+		defer close(ch)
+
+		for _, t := range src {
+			var u U = conv(t)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				ch <- u
+			}
+		}
+	}()
+	return ch
+}
+
 func ReqSrcChanFnFromSlice(s []*rhp.Request) ReqSrcChanFn {
 	return func(ctx context.Context) <-chan RequestResult {
-		ch := make(chan RequestResult)
-		go func() {
-			defer close(ch)
-
-			for _, req := range s {
-				select {
-				case <-ctx.Done():
-					return
-				default:
-					ch <- RequestOk(req)
-				}
-			}
-		}()
-		return ch
+		return Slice2Chan(
+			ctx,
+			s,
+			func() chan RequestResult { return make(chan RequestResult) },
+			func(q *rhp.Request) RequestResult { return RequestOk(q) },
+		)
 	}
 }
 
@@ -71,27 +86,50 @@ func (f RequestSrcFn) Next(ctx context.Context) (*rhp.Request, error) {
 
 func (f RequestSrcFn) AsIf() RequestSource { return f }
 
+//revive:disable:cognitive-complexity
+func AutoStopChan[T any](
+	ctx context.Context,
+	mkch func() chan T,
+	next func(context.Context) (T, error),
+	stop func(error) bool,
+) <-chan T {
+	var ch chan T = mkch()
+	go func() {
+		defer close(ch)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			t, e := next(ctx)
+			if stop(e) {
+				return
+			}
+			ch <- t
+		}
+	}()
+	return ch
+}
+
+//revive:enable:cognitive-complexity
+
 func (f RequestSrcFn) ToChan(bufSz int) RequestSourceCh {
 	return ReqSrcChanFn(func(ctx context.Context) <-chan RequestResult {
-		ret := make(chan RequestResult, bufSz)
 		var src RequestSource = f.AsIf()
-		go func() {
-			defer close(ret)
-			for {
-				select {
-				case <-ctx.Done():
-					return
-				default:
-				}
 
+		return AutoStopChan(
+			ctx,
+			func() chan RequestResult {
+				return make(chan RequestResult, bufSz)
+			},
+			func(ctx context.Context) (RequestResult, error) {
 				req, e := src.Next(ctx)
-				if errors.Is(e, ErrNoMoreData) {
-					return
-				}
-				ret <- RequestResult{Left: e, Right: req}
-			}
-		}()
-		return ret
+				return RequestResult{Left: e, Right: req}, e
+			},
+			func(e error) (stop bool) { return errors.Is(e, ErrNoMoreData) },
+		)
 	})
 }
 
