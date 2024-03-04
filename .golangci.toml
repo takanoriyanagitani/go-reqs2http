@@ -1,6 +1,6 @@
 [run]
 skip-files = [
-    #"source/reqs_test.go",
+	"_test.go$",
 ]
 
 [linters]
@@ -113,17 +113,45 @@ disabled = false
 name = "unused-parameter"
 disabled = false
 
-#[linters-settings.revive]
-#enable-all-rules = true
-
 [[linters-settings.revive.rules]]
 name = "var-declaration"
 disabled = true
+
+[[linters-settings.revive.rules]]
+name = "var-naming"
+disabled = false
+
+#[linters-settings.revive]
+#enable-all-rules = true
 
 [[linters-settings.revive.rules]]
 name = "line-length-limit"
 disabled = false
 
 [[linters-settings.revive.rules]]
-name = "var-naming"
+name = "argument-limit"
 disabled = false
+
+[[linters-settings.revive.rules]]
+name = "atomic"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "blank-imports"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "bool-literal-in-expr"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "call-to-gc"
+disabled = false
+
+[[linters-settings.revive.rules]]
+name = "cognitive-complexity"
+disabled = false
+arguments = [15]
+exclude = [
+	"request_test.go",
+]
