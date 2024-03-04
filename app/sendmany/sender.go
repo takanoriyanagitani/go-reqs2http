@@ -26,26 +26,44 @@ func (m ManySender) getWait(ctx context.Context) (time.Duration, error) {
 	return m.waiter.Hint(usg, chg), nil
 }
 
-func (m ManySender) SendAll(ctx context.Context, bufSz int) error {
-	var sf src.RequestSrcFn = src.RequestSrcFn(m.source.Next)
-	var sc src.RequestSourceCh = sf.ToChan(bufSz)
-	var reqs <-chan src.RequestResult = sc.GetRequests(ctx)
+func ProcessChan[T any](
+	ctx context.Context,
+	ch <-chan T,
+	noData func() error,
+	onData func(T) error,
+) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case p, ok := <-reqs:
-			var nodata bool = !ok
-			if nodata {
-				return nil
+		case dat, ok := <-ch:
+			if !ok {
+				return noData()
 			}
 
-			var err error = p.Left
+			e := onData(dat)
+			if nil != e {
+				return e
+			}
+		}
+	}
+}
+
+func (m ManySender) SendAll(ctx context.Context, bufSz int) error {
+	var sf src.RequestSrcFn = src.RequestSrcFn(m.source.Next)
+	var sc src.RequestSourceCh = sf.ToChan(bufSz)
+	var reqs <-chan src.RequestResult = sc.GetRequests(ctx)
+	return ProcessChan(
+		ctx,
+		reqs,
+		func() error { return nil },
+		func(rslt src.RequestResult) error {
+			var err error = rslt.Left
 			if nil != err {
 				return err
 			}
 
-			var req *rhp.Request = p.Right
+			var req *rhp.Request = rslt.Right
 			e := m.sender.Push(ctx, req)
 			if nil != e {
 				return e
@@ -57,8 +75,10 @@ func (m ManySender) SendAll(ctx context.Context, bufSz int) error {
 			}
 
 			time.Sleep(wait)
-		}
-	}
+
+			return nil
+		},
+	)
 }
 
 func (m ManySender) WithSource(s src.RequestSource) ManySender {
