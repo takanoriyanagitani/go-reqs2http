@@ -117,3 +117,4 @@ func RequestSrcFnFromSlice(s []*rhp.Request) RequestSrcFn {
 }
 
 var RequestSrcFnEmpty RequestSrcFn = RequestSrcFnFromSlice(nil)
+var RequestSourceEmpty RequestSource = RequestSrcFnEmpty.AsIf()
