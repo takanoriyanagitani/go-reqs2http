@@ -2,6 +2,7 @@ package sendmany
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	buf "github.com/takanoriyanagitani/go-reqs2http/buffered"
@@ -13,6 +14,16 @@ type ManySender struct {
 	source src.RequestSource
 	sender buf.Sender
 	waiter buf.WaitHint
+}
+
+func (m ManySender) getWait(ctx context.Context) (time.Duration, error) {
+	usg, eu := m.sender.Usage(ctx)
+	chg, ec := m.sender.Change(ctx)
+	e := errors.Join(eu, ec)
+	if nil != e {
+		return 1000 * time.Second, e
+	}
+	return m.waiter.Hint(usg, chg), nil
 }
 
 func (m ManySender) SendAll(ctx context.Context, bufSz int) error {
@@ -40,19 +51,33 @@ func (m ManySender) SendAll(ctx context.Context, bufSz int) error {
 				return e
 			}
 
-			usage, e := m.sender.Usage(ctx)
+			wait, e := m.getWait(ctx)
 			if nil != e {
 				return e
 			}
-
-			change, e := m.sender.Change(ctx)
-			if nil != e {
-				return e
-			}
-
-			var wait time.Duration = m.waiter.Hint(usage, change)
 
 			time.Sleep(wait)
 		}
 	}
+}
+
+func (m ManySender) WithSource(s src.RequestSource) ManySender {
+	m.source = s
+	return m
+}
+
+func (m ManySender) WithSender(s buf.Sender) ManySender {
+	m.sender = s
+	return m
+}
+
+func (m ManySender) WithWaiter(w buf.WaitHint) ManySender {
+	m.waiter = w
+	return m
+}
+
+var ManySenderNopDefault ManySender = ManySender{
+	source: src.RequestSourceEmpty,
+	sender: buf.SenderNop,
+	waiter: buf.WaitHintStaticDefault,
 }
