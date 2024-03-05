@@ -37,6 +37,7 @@ func SenderNew(client *http.Client) Sender {
 
 var SenderDefault Sender = SenderNew(http.DefaultClient)
 
+// A sender to send unconverted requests.
 type RawSender interface {
 	Send(context.Context, *rhp.Request) (*http.Response, error)
 }
