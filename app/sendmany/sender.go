@@ -14,6 +14,7 @@ type ManySender struct {
 	source src.RequestSource
 	sender buf.Sender
 	waiter buf.WaitHint
+	chsrc  src.RequestSourceCh
 }
 
 func (m ManySender) getWait(ctx context.Context) (time.Duration, error) {
@@ -51,9 +52,8 @@ func ProcessChan[T any](
 
 //revive:enable:cognitive-complexity
 
-func (m ManySender) SendAll(ctx context.Context, bufSz int) error {
-	var sf src.RequestSrcFn = src.RequestSrcFn(m.source.Next)
-	var sc src.RequestSourceCh = sf.ToChan(bufSz)
+func (m ManySender) SendAll(ctx context.Context, _ int) error {
+	var sc src.RequestSourceCh = m.chsrc
 	var reqs <-chan src.RequestResult = sc.GetRequests(ctx)
 	return ProcessChan(
 		ctx,
@@ -84,6 +84,12 @@ func (m ManySender) SendAll(ctx context.Context, bufSz int) error {
 
 func (m ManySender) WithSource(s src.RequestSource) ManySender {
 	m.source = s
+	m.chsrc = src.RequestSrcFn(s.Next).ToChan(0)
+	return m
+}
+
+func (m ManySender) WithSrcCh(s src.RequestSourceCh) ManySender {
+	m.chsrc = s
 	return m
 }
 
@@ -101,4 +107,5 @@ var ManySenderNopDefault ManySender = ManySender{
 	source: src.RequestSourceEmpty,
 	sender: buf.SenderNop,
 	waiter: buf.WaitHintStaticDefault,
+	chsrc:  src.RequestSrcFn(src.RequestSourceEmpty.Next).ToChan(0),
 }

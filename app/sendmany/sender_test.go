@@ -114,8 +114,9 @@ func TestSender(t *testing.T) {
 
 							var rsrc src.RequestSrcFn = src.
 								RequestSrcFnFromSlice(reqs)
+							var rsch src.RequestSourceCh = rsrc.ToChan(0)
 
-							var app aps.ManySender = sapp.WithSource(rsrc)
+							var app aps.ManySender = sapp.WithSrcCh(rsch)
 							e := app.SendAll(ctx, 0)
 
 							t.Run("no error", assertEqual(noErr, nil == e))
