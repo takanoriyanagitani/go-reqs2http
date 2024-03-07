@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	uch "github.com/takanoriyanagitani/go-reqs2http/util/ch"
+
 	buf "github.com/takanoriyanagitani/go-reqs2http/buffered"
 	rhp "github.com/takanoriyanagitani/go-reqs2http/reqs2http/v1"
 	src "github.com/takanoriyanagitani/go-reqs2http/source"
@@ -27,30 +29,13 @@ func (m ManySender) getWait(ctx context.Context) (time.Duration, error) {
 	return m.waiter.Hint(usg, chg), nil
 }
 
-//revive:disable:cognitive-complexity
 func ProcessChan[T any](
 	ctx context.Context,
 	ch <-chan T,
 	onData func(T) error,
 ) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case dat, ok := <-ch:
-			if !ok {
-				return nil
-			}
-
-			e := onData(dat)
-			if nil != e {
-				return e
-			}
-		}
-	}
+	return uch.ProcessChan(ctx, ch, onData)
 }
-
-//revive:enable:cognitive-complexity
 
 func (m ManySender) SendAll(ctx context.Context, _ int) error {
 	var sc src.RequestSourceCh = m.chsrc
