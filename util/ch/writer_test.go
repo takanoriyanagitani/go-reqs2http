@@ -78,7 +78,7 @@ func TestChUtil(t *testing.T) {
 			})
 		})
 
-		t.Run("Fold", func(t *testing.T) {
+		t.Run("TryFold", func(t *testing.T) {
 			t.Parallel()
 
 			t.Run("WriteToChFromSlice", func(t *testing.T) {
