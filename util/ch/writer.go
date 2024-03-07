@@ -84,3 +84,33 @@ func WriteToChFromSlice[T any](s []T) WriteToCh[T] {
 		return nil
 	})
 }
+
+func WriteToChFromBuilder[T any](
+	builder func(context.Context) (WriteToCh[T], error),
+) WriteToCh[T] {
+	return WriteToCh[T](func(
+		ctx context.Context,
+		dst chan<- pair.Pair[error, T],
+	) error {
+		w2c, e := builder(ctx)
+		if nil == e {
+			return w2c(ctx, dst)
+		}
+		return e
+	})
+}
+
+type Write2ChConverter[S, T any] func(context.Context, S) (WriteToCh[T], error)
+
+func (f Write2ChConverter[S, T]) ToConverted(src S) WriteToCh[T] {
+	return WriteToCh[T](func(
+		ctx context.Context,
+		ch chan<- pair.Pair[error, T],
+	) error {
+		w2c, e := f(ctx, src)
+		if nil == e {
+			return w2c(ctx, ch)
+		}
+		return e
+	})
+}
