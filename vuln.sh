@@ -1,3 +1,5 @@
 #!/bin/sh
 
-govulncheck ./...
+verbose=${ENV_VERBOSE_VULN}
+
+govulncheck ${verbose} ./...
