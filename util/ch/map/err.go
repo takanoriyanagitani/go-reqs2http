@@ -35,3 +35,16 @@ func MapErr[T, U any](
 	}()
 	return ret
 }
+
+type ConvErr[T, U any] func(context.Context, T) (U, error)
+
+func (f ConvErr[T, U]) MapErr(
+	ctx context.Context,
+	src <-chan pair.Pair[error, T],
+) <-chan pair.Pair[error, U] {
+	return MapErr(
+		ctx,
+		src,
+		f,
+	)
+}
