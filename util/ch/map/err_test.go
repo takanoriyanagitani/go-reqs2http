@@ -147,4 +147,94 @@ func TestErr(t *testing.T) {
 			})
 		})
 	})
+
+	t.Run("ConvErr", func(t *testing.T) {
+		t.Parallel()
+
+		t.Run("strings2ints2floats", func(t *testing.T) {
+			t.Parallel()
+
+			var s2i func(context.Context, string) (int, error) = util.
+				CtxIgnore(strconv.Atoi)
+			i2f := func(_ context.Context, i int) (float64, error) {
+				return float64(i), nil
+			}
+
+			var s2f chm.ConvErr[string, float64] = util.ComposeCtx(
+				s2i,
+				i2f,
+			)
+
+			t.Run("empty", func(t *testing.T) {
+				t.Parallel()
+
+				strs := make(chan string)
+				close(strs)
+				var pairs <-chan pair.Pair[error, string] = chm.Map(
+					context.Background(),
+					strs,
+					func(_ context.Context, s string) pair.Pair[error, string] {
+						return pair.Right[error](s)
+					},
+				)
+
+				var mapd <-chan pair.Pair[error, float64] = s2f.MapErr(
+					context.Background(),
+					pairs,
+				)
+
+				var res pair.Pair[error, float64] = uch.TryFold(
+					context.Background(),
+					0.0,
+					mapd,
+					func(
+						state float64,
+						next float64,
+					) pair.Pair[error, float64] {
+						return pair.Right[error](state + next)
+					},
+				)
+				t.Run("no err", assertNil(res.Left))
+				t.Run("no items", assertEqual(res.Right, 0.0))
+			})
+
+			t.Run("strings", func(t *testing.T) {
+				t.Parallel()
+
+				strs := make(chan string)
+				go func() {
+					defer close(strs)
+
+					strs <- "3776"
+					strs <- "599"
+				}()
+				var pairs <-chan pair.Pair[error, string] = chm.Map(
+					context.Background(),
+					strs,
+					func(_ context.Context, s string) pair.Pair[error, string] {
+						return pair.Right[error](s)
+					},
+				)
+
+				var mapd <-chan pair.Pair[error, float64] = s2f.MapErr(
+					context.Background(),
+					pairs,
+				)
+
+				var res pair.Pair[error, float64] = uch.TryFold(
+					context.Background(),
+					0.0,
+					mapd,
+					func(
+						state float64,
+						next float64,
+					) pair.Pair[error, float64] {
+						return pair.Right[error](state + next)
+					},
+				)
+				t.Run("no err", assertNil(res.Left))
+				t.Run("same value", assertEqual(res.Right, 4375.0))
+			})
+		})
+	})
 }
