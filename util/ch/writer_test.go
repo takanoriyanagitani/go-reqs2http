@@ -325,6 +325,101 @@ func TestChUtil(t *testing.T) {
 						t.Run("same value", assertEqual(res.Right, 22))
 					})
 				})
+
+				t.Run("WriteMany", func(t *testing.T) {
+					t.Parallel()
+
+					t.Run("jsons2integers", func(t *testing.T) {
+						t.Parallel()
+
+						var w2cc cut.Write2ChConverter[string, int16] = func(
+							ctx context.Context,
+							jstr string,
+						) (cut.WriteToCh[int16], error) {
+							var parsed []int16
+							e := json.Unmarshal([]byte(jstr), &parsed)
+							w2c := cut.WriteToChFromSlice(parsed)
+							return w2c, e
+						}
+
+						t.Run("empty", func(t *testing.T) {
+							t.Parallel()
+
+							jsons := make(chan pair.Pair[error, string])
+							close(jsons)
+
+							target := make(chan pair.Pair[error, int16])
+							go func() {
+								defer close(target)
+
+								var ctx context.Context = context.Background()
+								e := w2cc.WriteMany(
+									ctx,
+									jsons,
+									target,
+								)
+								t.Run("no err", assertNil(e))
+							}()
+
+							var res pair.Pair[error, int16] = cut.TryFold(
+								context.Background(),
+								0,
+								target,
+								func(
+									state int16,
+									next int16,
+								) pair.Pair[error, int16] {
+									return pair.Right[error](
+										state + next,
+									)
+								},
+							)
+							t.Run("no err", assertNil(res.Left))
+							t.Run("no items", assertEqual(res.Right, 0))
+						})
+
+						t.Run("integers", func(t *testing.T) {
+							t.Parallel()
+
+							jsons := make(chan pair.Pair[error, string])
+							go func() {
+								defer close(jsons)
+
+								jsons <- pair.Right[error](`[2,4,6,8]`)
+								jsons <- pair.Right[error](`[1,3,5,7]`)
+							}()
+
+							target := make(chan pair.Pair[error, int16])
+							go func() {
+								defer close(target)
+
+								var ctx context.Context = context.Background()
+								e := w2cc.WriteMany(
+									ctx,
+									jsons,
+									target,
+								)
+								t.Run("no err", assertNil(e))
+							}()
+
+							var res pair.Pair[error, int16] = cut.TryFold(
+								context.Background(),
+								0,
+								target,
+								func(
+									state int16,
+									next int16,
+								) pair.Pair[error, int16] {
+									return pair.Right[error](
+										state + next,
+									)
+								},
+							)
+							t.Run("no err", assertNil(res.Left))
+							t.Run("same value", assertEqual(res.Right, 36))
+						})
+					})
+				})
 			})
 		})
 	})
