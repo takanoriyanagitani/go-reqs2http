@@ -30,6 +30,24 @@ func ProcessChan[T any](
 
 //revive:enable:cognitive-complexity
 
+func ForEach[T any](
+	ctx context.Context,
+	ch <-chan T,
+	f func(T),
+) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case next, ok := <-ch:
+			if !ok {
+				return nil
+			}
+			f(next)
+		}
+	}
+}
+
 func TryForEach[T any](
 	ctx context.Context,
 	ch <-chan pair.Pair[error, T],
