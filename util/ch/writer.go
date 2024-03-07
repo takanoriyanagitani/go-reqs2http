@@ -114,3 +114,30 @@ func (f Write2ChConverter[S, T]) ToConverted(src S) WriteToCh[T] {
 		return e
 	})
 }
+
+func WriteMany[S, T any](
+	ctx context.Context,
+	sources <-chan pair.Pair[error, S],
+	target chan<- pair.Pair[error, T],
+	s2wt Write2ChConverter[S, T],
+) error {
+	return TryForEach(
+		ctx,
+		sources,
+		func(src S) error {
+			w2c, e := s2wt(ctx, src)
+			if nil != e {
+				return e
+			}
+			return w2c(ctx, target)
+		},
+	)
+}
+
+func (f Write2ChConverter[S, T]) WriteMany(
+	ctx context.Context,
+	sources <-chan pair.Pair[error, S],
+	target chan<- pair.Pair[error, T],
+) error {
+	return WriteMany(ctx, sources, target, f)
+}
