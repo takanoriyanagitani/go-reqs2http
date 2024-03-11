@@ -15,3 +15,7 @@ func (f ConvertFn) Convert(ctx context.Context, i []byte) ([]byte, error) {
 }
 
 func (f ConvertFn) AsIf() Converter { return f }
+
+var ConvertFnNop ConvertFn = func(_ context.Context, _ []byte) ([]byte, error) {
+	return nil, nil
+}
