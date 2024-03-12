@@ -1,0 +1,39 @@
+[package]
+name = "rs-gstr2str"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+unwrap_used = "forbid"
+
+[profile.release-wasm]
+inherits = "release"
+lto = true
+strip = true
+opt-level = 's'
+codegen-units = 11
+
+[dependencies.flate2]
+version = "1.0"
+default-features = false
+features = [
+    "rust_backend",
+]
+
+[dependencies.wee_alloc]
+version = "0.4"
+optional = true
+
+[features]
+default = [
+]
+
+smaller_wasm_wee_alloc = [
+    "wee_alloc",
+]
