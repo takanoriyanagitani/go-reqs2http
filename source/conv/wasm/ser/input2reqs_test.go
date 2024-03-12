@@ -67,29 +67,32 @@ func TestSer(t *testing.T) {
 				}
 
 				reqs := make(chan pair.Pair[error, *rhp.Request])
-				defer close(reqs)
 
 				go func() {
-					var cnt pair.Pair[error, int] = uch.TryFold(
+					defer close(reqs)
+
+					var buf []*rhp.Request
+					e := i2r.Input2chan(
 						context.Background(),
-						0,
+						nil,
+						buf,
 						reqs,
-						func(state int, _ *rhp.Request) pair.Pair[error, int] {
-							return pair.Right[error](state + 1)
-						},
 					)
-					t.Run("no chan err", assertNil(cnt.Left))
-					t.Run("no items", assertEqual(cnt.Right, 0))
+					if nil != e {
+						panic(e)
+					}
 				}()
 
-				var buf []*rhp.Request
-				e := i2r.Input2chan(
+				var cnt pair.Pair[error, int] = uch.TryFold(
 					context.Background(),
-					nil,
-					buf,
+					0,
 					reqs,
+					func(state int, _ *rhp.Request) pair.Pair[error, int] {
+						return pair.Right[error](state + 1)
+					},
 				)
-				t.Run("no err", assertNil(e))
+				t.Run("no chan err", assertNil(cnt.Left))
+				t.Run("no items", assertEqual(cnt.Right, 0))
 			})
 
 			t.Run("dummy", func(t *testing.T) {
