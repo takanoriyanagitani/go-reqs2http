@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"strings"
 	"slices"
+	"strings"
 
 	rhp "github.com/takanoriyanagitani/go-reqs2http/reqs2http/v1"
 
@@ -50,7 +50,7 @@ func assertEqual[T comparable](a, b T) func(*testing.T) {
 
 func assertEqualItems[T comparable](a, b []T) func(*testing.T) {
 	return assertEqualNew(func(a, b []T) (same bool) {
-		return slices.Equal(a,b)
+		return slices.Equal(a, b)
 	})(a, b)
 }
 
@@ -109,7 +109,7 @@ func TestMsg2reqs(t *testing.T) {
 					var splited []string = strings.Split(s, ",")
 					var filtered = slices.DeleteFunc(
 						splited,
-						func(u string) (rmv bool){ return len(u) < 1 },
+						func(u string) (rmv bool) { return len(u) < 1 },
 					)
 					urls.urls = urls.urls[:0]
 					return ua.TryForEach(
