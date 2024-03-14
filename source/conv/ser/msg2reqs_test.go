@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"encoding/json"
 	"slices"
 	"strings"
 
@@ -63,6 +64,18 @@ func assertNil(e error) func(*testing.T) {
 		}
 
 		t.Fatalf("unexpected error: %v\n", e)
+	}
+}
+
+func assertErr(e error) func(*testing.T) {
+	return func(t *testing.T) {
+		t.Helper()
+
+		if nil != e {
+			return
+		}
+
+		t.Fatalf("must fail\n")
 	}
 }
 
@@ -207,6 +220,184 @@ func TestMsg2reqs(t *testing.T) {
 								"https://localhost/3",
 							},
 						))
+					})
+				})(s2r)
+			})
+
+			t.Run("json2reqs", func(t *testing.T) {
+				t.Parallel()
+
+				type Urls struct{ urls []string }
+
+				var s2r cser.Message2requests[*Urls] = func(
+					ctx context.Context,
+					msg *Urls,
+					dst chan<- pair.Pair[error, *rhp.Request],
+				) error {
+					return ua.TryForEach(
+						msg.urls,
+						func(url string) error {
+							select {
+							case <-ctx.Done():
+								return ctx.Err()
+							default:
+							}
+
+							dst <- pair.Right[error](&rhp.Request{Url: url})
+							return nil
+						},
+					)
+				}
+
+				var s2u cser.ConvertFn[*Urls] = func(
+					serialized []byte,
+					urls *Urls,
+				) error {
+					const baseURL string = "https://localhost/"
+					var buf []string
+					e := json.Unmarshal(serialized, &buf)
+					if nil != e {
+						return e
+					}
+					return ua.TryForEach(
+						buf,
+						func(url string) error {
+							urls.urls = append(urls.urls, baseURL+url)
+							return nil
+						},
+					)
+				}
+
+				(func(m2r cser.Message2requests[*Urls]) {
+					t.Run("empty", func(t *testing.T) {
+						t.Parallel()
+
+						var buf Urls
+
+						dst := make(chan pair.Pair[error, *rhp.Request])
+
+						go func() {
+							defer close(dst)
+							e := m2r.Bytes2Chan(
+								context.Background(),
+								[]byte("[]"),
+								s2u,
+								&buf,
+								dst,
+							)
+							if nil != e {
+								panic(e)
+							}
+						}()
+
+						var reqs pair.Pair[error, []*rhp.Request] = uch.TryFold(
+							context.Background(),
+							nil,
+							dst,
+							func(
+								state []*rhp.Request,
+								next *rhp.Request,
+							) pair.Pair[error, []*rhp.Request] {
+								return pair.Right[error](append(state, next))
+							},
+						)
+
+						t.Run("no err", assertNil(reqs.Left))
+						t.Run("no items", assertEqual(len(reqs.Right), 0))
+					})
+
+					t.Run("few", func(t *testing.T) {
+						t.Parallel()
+
+						var buf Urls
+
+						dst := make(chan pair.Pair[error, *rhp.Request])
+
+						go func() {
+							defer close(dst)
+							e := m2r.Bytes2Chan(
+								context.Background(),
+								[]byte(`["4","5","6"]`),
+								s2u,
+								&buf,
+								dst,
+							)
+							if nil != e {
+								panic(e)
+							}
+						}()
+
+						var reqs pair.Pair[error, []*rhp.Request] = uch.TryFold(
+							context.Background(),
+							nil,
+							dst,
+							func(
+								state []*rhp.Request,
+								next *rhp.Request,
+							) pair.Pair[error, []*rhp.Request] {
+								return pair.Right[error](append(state, next))
+							},
+						)
+
+						t.Run("no err", assertNil(reqs.Left))
+						t.Run("3 items", assertEqual(len(reqs.Right), 3))
+						t.Run("same items", assertEqualItems(
+							ua.Map(
+								reqs.Right,
+								func(r *rhp.Request) string { return r.Url },
+							),
+							[]string{
+								"https://localhost/4",
+								"https://localhost/5",
+								"https://localhost/6",
+							},
+						))
+					})
+
+					t.Run("err", func(t *testing.T) {
+						t.Parallel()
+
+						var buf Urls
+
+						dst := make(chan pair.Pair[error, *rhp.Request])
+						ech := make(chan error)
+
+						// 1. dst will be closed
+						// 2. ech will be closed
+						// 3. dst will be read
+						// 4. ech will be read
+						go func() {
+							defer close(ech)
+
+							e := func() error {
+								defer close(dst)
+								return m2r.Bytes2Chan(
+									context.Background(),
+									[]byte(`]`),
+									s2u,
+									&buf,
+									dst,
+								)
+							}()
+
+							ech <- e
+						}()
+
+						var reqs pair.Pair[error, []*rhp.Request] = uch.TryFold(
+							context.Background(),
+							nil,
+							dst,
+							func(
+								state []*rhp.Request,
+								next *rhp.Request,
+							) pair.Pair[error, []*rhp.Request] {
+								return pair.Right[error](append(state, next))
+							},
+						)
+
+						t.Run("no items", assertEqual(len(reqs.Right), 0))
+						e := <-ech
+						t.Run("must fail", assertErr(e))
 					})
 				})(s2r)
 			})
