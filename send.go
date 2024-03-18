@@ -12,7 +12,9 @@ var (
 	ErrInvalidRequest error = errors.New("invalid request")
 )
 
+// Sender sends an [http.Request].
 type Sender interface {
+	// Send tries to get an [http.Response] by sending the request.
 	Send(context.Context, *http.Request) (*http.Response, error)
 }
 
@@ -35,6 +37,7 @@ func SenderNew(client *http.Client) Sender {
 	})
 }
 
+// SenderDefault uses [http.DefaultClient] to send an [http.Request].
 var SenderDefault Sender = SenderNew(http.DefaultClient)
 
 // A sender to send unconverted requests.
